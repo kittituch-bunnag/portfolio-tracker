@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, TrendingUp, FolderOpen } from 'lucide-react'
+import { RefreshCw, TrendingUp, FolderOpen, Sun, Moon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePortfolioStore } from '@/store/portfolioStore'
 import { fetchUsdToThb } from '@/services/exchangeRate'
 import { ImportExportDialog } from '@/components/ImportExportDialog'
+import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/lib/utils'
 
 export function Header() {
@@ -11,6 +12,7 @@ export function Header() {
     usePortfolioStore()
   const [fetchingRate, setFetchingRate] = useState(false)
   const [ioOpen, setIoOpen] = useState(false)
+  const { theme, toggle: toggleTheme } = useTheme()
 
   async function refreshRate() {
     setFetchingRate(true)
@@ -57,6 +59,11 @@ export function Header() {
               <RefreshCw className={cn('h-3 w-3', fetchingRate && 'animate-spin')} />
             </Button>
           </div>
+
+          {/* Theme toggle */}
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
 
           {/* Currency toggle */}
           <div className="flex rounded-md border overflow-hidden text-sm">
