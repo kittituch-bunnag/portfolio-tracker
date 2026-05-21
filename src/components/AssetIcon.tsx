@@ -80,17 +80,16 @@ export function AssetIcon({ ticker, category, coinGeckoId, size = 28, className 
     )
   }
 
-  // US stocks / ETFs: Clearbit logo
+  // US stocks / ETFs: Google favicon service
   const domain = TICKER_DOMAIN[ticker.toUpperCase()]
   if (domain && (category === 'us-stocks' || category === 'etf')) {
     return (
       <img
-        src={`https://logo.clearbit.com/${domain}`}
+        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
         alt={ticker}
         style={style}
         className={`rounded-md object-contain ${className}`}
         onError={(e) => {
-          // Fallback to emoji
           const el = e.target as HTMLImageElement
           el.style.display = 'none'
           const parent = el.parentElement

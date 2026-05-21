@@ -11,7 +11,7 @@ A personal investment portfolio tracker built with React + Vite + TypeScript. Tr
 - **Full portfolio table** with: Avg. Cost, Units, Market Price, Market Value, Cost Basis, P&L, P&L %, Goal Price, To Goal %
 - **Charts** — allocation pie chart + P&L bar chart per category; portfolio-level charts on Summary page
 - **Summary dashboard** — total value, P&L, allocation breakdown, category table
-- **Asset icons** — Clearbit logos for US stocks, CoinGecko images for crypto, emoji fallbacks
+- **Asset icons** — Google favicon service for US stocks/ETFs, CoinGecko images for crypto, emoji fallbacks
 - **Persistent storage** — all data stored in browser localStorage (no account or server needed)
 - **Import / Export** — back up your portfolio to JSON or load data from a file (merge or replace)
 - **Dark / light mode** — follows your system preference

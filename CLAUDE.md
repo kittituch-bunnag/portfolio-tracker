@@ -10,7 +10,7 @@ Single-page React app (Vite + TypeScript) for personal investment portfolio trac
 - **Routing**: React Router v6, `HashRouter`
 - **Styling**: Tailwind CSS + shadcn/ui-style components (src/components/ui/)
 - **Charts**: Recharts
-- **Icons**: Lucide React + Clearbit logo API + CoinGecko image URLs
+- **Icons**: Lucide React + Google S2 favicon API + CoinGecko image URLs
 - **APIs**: Yahoo Finance proxy, CoinGecko proxy, open.er-api.com (all via Vite dev proxy)
 
 ## Key Architecture Decisions
