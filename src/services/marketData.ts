@@ -8,8 +8,8 @@ export async function fetchYahooPrices(tickers: string[]): Promise<MarketPrice[]
   const symbols = tickers.join(',')
   const url = `/api/yahoo/v7/finance/quote?symbols=${encodeURIComponent(symbols)}&fields=regularMarketPrice,currency`
   const res = await fetch(url)
-  if (!res.ok) throw new Error(`Yahoo Finance error: ${res.status}`)
   const data = await res.json()
+  if (!res.ok) throw new Error(`Yahoo Finance error: ${res.status} — ${data?.error ?? JSON.stringify(data)}`)
   const quotes: Array<Record<string, unknown>> = data?.quoteResponse?.result ?? []
 
   return quotes.map((q) => ({
