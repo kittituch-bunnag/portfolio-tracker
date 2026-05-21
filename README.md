@@ -8,7 +8,7 @@ A personal investment portfolio tracker built with React + Vite + TypeScript. Tr
 - **Live market prices** via Yahoo Finance (stocks, ETFs, Thai stocks) and CoinGecko (crypto)
 - **Automatic exchange rate** (USD ↔ THB) via open.er-api.com
 - **Currency toggle** — view all values in THB or USD
-- **Full portfolio table** with: Avg. Cost, Units, Market Price, Market Value, Cost Basis, P&L, P&L %, Goal Price, To Goal %
+- **Full portfolio table** with: Avg. Cost, Units, Market Price, Market Value, Cost Basis, P&L, P&L %, Buy Goal, Sell Goal
 - **Charts** — allocation pie chart + P&L bar chart per category; portfolio-level charts on Summary page
 - **Summary dashboard** — total value, P&L, allocation breakdown, category table
 - **Asset icons** — Google favicon service for US stocks/ETFs, CoinGecko images for crypto, emoji fallbacks
@@ -86,7 +86,8 @@ Assets are grouped by category under an `assets` object. Each key is a category 
         "name": "Apple Inc.",
         "avgCost": 150.00,
         "units": 10,
-        "goalPrice": 200.00,
+        "buyGoalPrice": 140.00,
+        "sellGoalPrice": 200.00,
         "priceCurrency": "USD"
       }
     ]
@@ -106,14 +107,16 @@ Only include categories that have assets — empty categories can be omitted.
 | `name` | `string` | Display name |
 | `avgCost` | `number` | Average purchase price per unit (in `priceCurrency`) |
 | `units` | `number` | Number of units / shares held |
-| `goalPrice` | `number` | Target price (in `priceCurrency`); use `0` if none |
-| `priceCurrency` | `"THB"` \| `"USD"` | Currency of `avgCost` and `goalPrice` |
+| `priceCurrency` | `"THB"` \| `"USD"` | Currency of `avgCost`, `buyGoalPrice`, and `sellGoalPrice` |
 
 #### Optional fields per asset
 
 | Field | Type | Description |
 |---|---|---|
+| `buyGoalPrice` | `number` | Target price to buy more (in `priceCurrency`) |
+| `sellGoalPrice` | `number` | Target price to take profit / sell (in `priceCurrency`) |
 | `coinGeckoId` | `string` | CoinGecko coin ID (crypto only, e.g. `"bitcoin"`) |
+| `finnomenaFundId` | `string` | Finnomena internal fund ID (Thai mutual funds, e.g. `"F00001CKTY"`) |
 | `manualPrice` | `number` | Override API price with a fixed value |
 | `lastPriceFetched` | `number` | Last known market price (pre-fills display before next fetch) |
 | `lastUpdated` | `string` | ISO 8601 timestamp of the last price update |
@@ -145,7 +148,8 @@ Only include categories that have assets — empty categories can be omitted.
         "name": "Apple Inc.",
         "avgCost": 150.00,
         "units": 10,
-        "goalPrice": 220.00,
+        "buyGoalPrice": 140.00,
+        "sellGoalPrice": 220.00,
         "priceCurrency": "USD"
       }
     ],
@@ -157,7 +161,7 @@ Only include categories that have assets — empty categories can be omitted.
         "name": "Vanguard S&P 500 ETF",
         "avgCost": 420.00,
         "units": 5,
-        "goalPrice": 500.00,
+        "sellGoalPrice": 500.00,
         "priceCurrency": "USD"
       }
     ],
@@ -169,7 +173,8 @@ Only include categories that have assets — empty categories can be omitted.
         "name": "PTT PCL",
         "avgCost": 35.50,
         "units": 1000,
-        "goalPrice": 45.00,
+        "buyGoalPrice": 30.00,
+        "sellGoalPrice": 45.00,
         "priceCurrency": "THB"
       }
     ],
@@ -181,8 +186,9 @@ Only include categories that have assets — empty categories can be omitted.
         "name": "KF LTF Dividend",
         "avgCost": 12.50,
         "units": 10000,
-        "goalPrice": 15.00,
+        "sellGoalPrice": 15.00,
         "priceCurrency": "THB",
+        "finnomenaFundId": "F000000ABC",
         "manualPrice": 13.20
       }
     ],
@@ -194,7 +200,8 @@ Only include categories that have assets — empty categories can be omitted.
         "name": "Bitcoin",
         "avgCost": 40000.00,
         "units": 0.5,
-        "goalPrice": 100000.00,
+        "buyGoalPrice": 35000.00,
+        "sellGoalPrice": 100000.00,
         "priceCurrency": "USD",
         "coinGeckoId": "bitcoin"
       }
@@ -207,7 +214,7 @@ Only include categories that have assets — empty categories can be omitted.
         "name": "Gold Futures",
         "avgCost": 1900.00,
         "units": 2,
-        "goalPrice": 2500.00,
+        "sellGoalPrice": 2500.00,
         "priceCurrency": "USD"
       }
     ],
@@ -219,7 +226,6 @@ Only include categories that have assets — empty categories can be omitted.
         "name": "Emergency Fund",
         "avgCost": 1,
         "units": 300000,
-        "goalPrice": 1,
         "priceCurrency": "THB",
         "manualPrice": 1
       }
