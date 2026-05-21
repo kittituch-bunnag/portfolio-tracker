@@ -14,7 +14,7 @@ A personal investment portfolio tracker built with React + Vite + TypeScript. Tr
 - **Asset icons** — Google favicon service for US stocks/ETFs, CoinGecko images for crypto, emoji fallbacks
 - **Persistent storage** — all data stored in browser localStorage (no account or server needed)
 - **Import / Export** — back up your portfolio to JSON or load data from a file (merge or replace)
-- **Dark / light mode** — follows your system preference
+- **Dark / light mode** — toggle via the Sun/Moon button in the header; defaults to system preference, persisted to localStorage
 
 ## Quick Start
 

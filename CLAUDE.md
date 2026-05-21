@@ -65,6 +65,7 @@ The ticker input in AssetForm for `thai-mutual-funds` shows a live search autoco
 | `src/components/Header.tsx` | Top bar — currency toggle, exchange rate, Import/Export button |
 | `src/components/ImportExportDialog.tsx` | Import / Export modal (merge or replace mode) |
 | `src/components/Sidebar.tsx` | Nav sidebar with asset counts |
+| `src/hooks/useTheme.ts` | Dark/light mode — reads system preference, persists to `localStorage`, toggles `dark` class on `<html>` |
 | `src/pages/CategoryPage.tsx` | Shared page for all 7 categories |
 | `src/pages/Summary.tsx` | Portfolio dashboard |
 | `vite.config.ts` | Vite config + custom Yahoo Finance plugin + CoinGecko/exchangerate proxies |
