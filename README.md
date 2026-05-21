@@ -66,31 +66,37 @@ Accepts a JSON file in the format below. Two import modes:
 
 ### JSON Payload Format
 
+Assets are grouped by category under an `assets` object. Each key is a category name and the value is an array of assets belonging to that category.
+
 ```json
 {
-  "version": 1,
+  "version": 2,
   "exportedAt": "2026-05-21T10:00:00.000Z",
-  "assets": [
-    {
-      "id": "unique-string-id",
-      "category": "us-stocks",
-      "ticker": "AAPL",
-      "name": "Apple Inc.",
-      "avgCost": 150.00,
-      "units": 10,
-      "goalPrice": 200.00,
-      "priceCurrency": "USD"
-    }
-  ]
+  "assets": {
+    "us-stocks": [
+      {
+        "id": "unique-string-id",
+        "category": "us-stocks",
+        "ticker": "AAPL",
+        "name": "Apple Inc.",
+        "avgCost": 150.00,
+        "units": 10,
+        "goalPrice": 200.00,
+        "priceCurrency": "USD"
+      }
+    ]
+  }
 }
 ```
+
+Only include categories that have assets — empty categories can be omitted.
 
 #### Required fields per asset
 
 | Field | Type | Description |
 |---|---|---|
 | `id` | `string` | Unique identifier (any string; use a UUID or timestamp) |
-| `category` | `string` | One of the valid category values (see below) |
+| `category` | `string` | Must match the parent category key |
 | `ticker` | `string` | Ticker symbol, fund code, or any label |
 | `name` | `string` | Display name |
 | `avgCost` | `number` | Average purchase price per unit (in `priceCurrency`) |
@@ -107,9 +113,9 @@ Accepts a JSON file in the format below. Two import modes:
 | `lastPriceFetched` | `number` | Last known market price (pre-fills display before next fetch) |
 | `lastUpdated` | `string` | ISO 8601 timestamp of the last price update |
 
-#### Valid `category` values
+#### Valid category keys
 
-| Value | Page |
+| Key | Page |
 |---|---|
 | `"us-stocks"` | US Stocks |
 | `"etf"` | ETFs |
@@ -123,83 +129,97 @@ Accepts a JSON file in the format below. Two import modes:
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "exportedAt": "2026-05-21T10:00:00.000Z",
-  "assets": [
-    {
-      "id": "1",
-      "category": "us-stocks",
-      "ticker": "AAPL",
-      "name": "Apple Inc.",
-      "avgCost": 150.00,
-      "units": 10,
-      "goalPrice": 220.00,
-      "priceCurrency": "USD"
-    },
-    {
-      "id": "2",
-      "category": "etf",
-      "ticker": "VOO",
-      "name": "Vanguard S&P 500 ETF",
-      "avgCost": 420.00,
-      "units": 5,
-      "goalPrice": 500.00,
-      "priceCurrency": "USD"
-    },
-    {
-      "id": "3",
-      "category": "thai-stocks-drs",
-      "ticker": "PTT.BK",
-      "name": "PTT PCL",
-      "avgCost": 35.50,
-      "units": 1000,
-      "goalPrice": 45.00,
-      "priceCurrency": "THB"
-    },
-    {
-      "id": "4",
-      "category": "thai-mutual-funds",
-      "ticker": "KFLTFDIV-A",
-      "name": "KF LTF Dividend",
-      "avgCost": 12.50,
-      "units": 10000,
-      "goalPrice": 15.00,
-      "priceCurrency": "THB",
-      "manualPrice": 13.20
-    },
-    {
-      "id": "5",
-      "category": "crypto",
-      "ticker": "BTC",
-      "name": "Bitcoin",
-      "avgCost": 40000.00,
-      "units": 0.5,
-      "goalPrice": 100000.00,
-      "priceCurrency": "USD",
-      "coinGeckoId": "bitcoin"
-    },
-    {
-      "id": "6",
-      "category": "gold",
-      "ticker": "GC=F",
-      "name": "Gold Futures",
-      "avgCost": 1900.00,
-      "units": 2,
-      "goalPrice": 2500.00,
-      "priceCurrency": "USD"
-    },
-    {
-      "id": "7",
-      "category": "emergency-cash",
-      "ticker": "SAVINGS",
-      "name": "Emergency Fund",
-      "avgCost": 1,
-      "units": 300000,
-      "goalPrice": 1,
-      "priceCurrency": "THB",
-      "manualPrice": 1
-    }
-  ]
+  "assets": {
+    "us-stocks": [
+      {
+        "id": "1",
+        "category": "us-stocks",
+        "ticker": "AAPL",
+        "name": "Apple Inc.",
+        "avgCost": 150.00,
+        "units": 10,
+        "goalPrice": 220.00,
+        "priceCurrency": "USD"
+      }
+    ],
+    "etf": [
+      {
+        "id": "2",
+        "category": "etf",
+        "ticker": "VOO",
+        "name": "Vanguard S&P 500 ETF",
+        "avgCost": 420.00,
+        "units": 5,
+        "goalPrice": 500.00,
+        "priceCurrency": "USD"
+      }
+    ],
+    "thai-stocks-drs": [
+      {
+        "id": "3",
+        "category": "thai-stocks-drs",
+        "ticker": "PTT.BK",
+        "name": "PTT PCL",
+        "avgCost": 35.50,
+        "units": 1000,
+        "goalPrice": 45.00,
+        "priceCurrency": "THB"
+      }
+    ],
+    "thai-mutual-funds": [
+      {
+        "id": "4",
+        "category": "thai-mutual-funds",
+        "ticker": "KFLTFDIV-A",
+        "name": "KF LTF Dividend",
+        "avgCost": 12.50,
+        "units": 10000,
+        "goalPrice": 15.00,
+        "priceCurrency": "THB",
+        "manualPrice": 13.20
+      }
+    ],
+    "crypto": [
+      {
+        "id": "5",
+        "category": "crypto",
+        "ticker": "BTC",
+        "name": "Bitcoin",
+        "avgCost": 40000.00,
+        "units": 0.5,
+        "goalPrice": 100000.00,
+        "priceCurrency": "USD",
+        "coinGeckoId": "bitcoin"
+      }
+    ],
+    "gold": [
+      {
+        "id": "6",
+        "category": "gold",
+        "ticker": "GC=F",
+        "name": "Gold Futures",
+        "avgCost": 1900.00,
+        "units": 2,
+        "goalPrice": 2500.00,
+        "priceCurrency": "USD"
+      }
+    ],
+    "emergency-cash": [
+      {
+        "id": "7",
+        "category": "emergency-cash",
+        "ticker": "SAVINGS",
+        "name": "Emergency Fund",
+        "avgCost": 1,
+        "units": 300000,
+        "goalPrice": 1,
+        "priceCurrency": "THB",
+        "manualPrice": 1
+      }
+    ]
+  }
 }
 ```
 

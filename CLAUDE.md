@@ -35,7 +35,7 @@ Yahoo Finance requires a session cookie (`A1`) + crumb token on every API reques
 Uses `node:https` (not `fetch`/undici) to avoid TLS issues on Windows. Requires `maxHeaderSize: 81920` because Yahoo's response headers exceed Node's 16 KB default.
 
 ### Import / Export
-`src/utils/dataIO.ts` handles JSON export (triggers browser download) and import (parses + validates file). `importAssets(assets, mode)` in the store supports `merge` (skip duplicate IDs) and `replace` (overwrite all). See README for the full JSON payload format.
+`src/utils/dataIO.ts` handles JSON export (triggers browser download) and import (parses + validates file). The payload format (v2) groups assets by category: `{ version: 2, assets: { "us-stocks": [...], "crypto": [...] } }`. `flattenExport()` collapses the category map back to `Asset[]` for use with the store. `importAssets(assets, mode)` in the store supports `merge` (skip duplicate IDs) and `replace` (overwrite all). See README for the full JSON payload format.
 
 ### Adding a new API / data source
 - Add a new fetch function in `src/services/marketData.ts`
