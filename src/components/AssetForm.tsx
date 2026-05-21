@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Asset, AssetCategory, AssetCurrency } from '@/types'
 import { searchFinnomenaFund, FinnomenaFund } from '@/services/marketData'
@@ -93,7 +93,6 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
   const [form, setForm] = useState<typeof EMPTY>(EMPTY)
   const [fundSuggestions, setFundSuggestions] = useState<FinnomenaFund[]>([])
   const [fundDropdownOpen, setFundDropdownOpen] = useState(false)
-  const tickerWrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (open) {
@@ -215,7 +214,7 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
           {/* Ticker */}
           <div className="space-y-1.5">
             <Label>Ticker / Code</Label>
-            <div className="relative" ref={tickerWrapRef}>
+            <div>
               <Input
                 placeholder={CATEGORY_TICKER_HINT[category]}
                 value={form.ticker ?? ''}
@@ -224,23 +223,23 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
                 autoComplete="off"
                 required
               />
-              {fundDropdownOpen && (
-                <ul className="absolute z-50 w-full mt-1 max-h-56 overflow-y-auto rounded-md border border-border bg-popover shadow-md text-sm">
-                  {fundSuggestions.map((fund) => (
-                    <li key={fund.fund_id}>
-                      <button
-                        type="button"
-                        className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground"
-                        onMouseDown={(e) => { e.preventDefault(); handleFundSelect(fund) }}
-                      >
-                        <span className="font-medium">{fund.short_code}</span>
-                        <span className="ml-2 text-muted-foreground truncate">{fund.name_th}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
             </div>
+            {fundDropdownOpen && (
+              <ul className="w-full max-h-48 overflow-y-auto rounded-md border border-border bg-popover shadow-sm text-sm">
+                {fundSuggestions.map((fund) => (
+                  <li key={fund.fund_id}>
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+                      onMouseDown={(e) => { e.preventDefault(); handleFundSelect(fund) }}
+                    >
+                      <span className="font-medium">{fund.short_code}</span>
+                      <span className="ml-2 text-muted-foreground">{fund.name_th}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Name */}
