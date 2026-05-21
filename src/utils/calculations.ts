@@ -20,8 +20,10 @@ export function calcAsset(
   const currentValue = currentPrice * asset.units
   const pnlValue = currentValue - costBasis
   const pnlPercent = costBasis > 0 ? (pnlValue / costBasis) * 100 : 0
-  const toGoalPercent =
-    currentPrice > 0 ? ((asset.goalPrice - currentPrice) / currentPrice) * 100 : 0
+  const toBuyGoalPercent = asset.buyGoalPrice && currentPrice > 0
+    ? ((asset.buyGoalPrice - currentPrice) / currentPrice) * 100 : 0
+  const toSellGoalPercent = asset.sellGoalPrice && currentPrice > 0
+    ? ((asset.sellGoalPrice - currentPrice) / currentPrice) * 100 : 0
 
   return {
     ...asset,
@@ -30,7 +32,8 @@ export function calcAsset(
     currentValue,
     pnlValue,
     pnlPercent,
-    toGoalPercent,
+    toBuyGoalPercent,
+    toSellGoalPercent,
   }
 }
 

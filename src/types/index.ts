@@ -18,7 +18,8 @@ export interface Asset {
   name: string
   avgCost: number        // average purchase price per unit (in priceCurrency)
   units: number
-  goalPrice: number      // target price (in priceCurrency)
+  buyGoalPrice?: number  // target price to buy more (in priceCurrency)
+  sellGoalPrice?: number // target price to sell / take profit (in priceCurrency)
   priceCurrency: AssetCurrency
   coinGeckoId?: string       // for crypto assets
   finnomenaFundId?: string   // for Thai mutual funds (fund_id from Finnomena)
@@ -41,7 +42,8 @@ export interface AssetWithMarketData extends Asset {
   currentValue: number
   pnlValue: number
   pnlPercent: number
-  toGoalPercent: number
+  toBuyGoalPercent: number
+  toSellGoalPercent: number
 }
 
 export interface CategorySummary {

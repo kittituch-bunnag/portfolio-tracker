@@ -80,7 +80,8 @@ const EMPTY: Partial<Asset> = {
   name: '',
   avgCost: 0,
   units: 0,
-  goalPrice: 0,
+  buyGoalPrice: undefined,
+  sellGoalPrice: undefined,
   manualPrice: undefined,
   coinGeckoId: undefined,
   finnomenaFundId: undefined,
@@ -104,7 +105,8 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
           name: initialAsset.name,
           avgCost: initialAsset.avgCost,
           units: initialAsset.units,
-          goalPrice: initialAsset.goalPrice,
+          buyGoalPrice: initialAsset.buyGoalPrice,
+          sellGoalPrice: initialAsset.sellGoalPrice,
           manualPrice: initialAsset.manualPrice,
           coinGeckoId: initialAsset.coinGeckoId,
           finnomenaFundId: initialAsset.finnomenaFundId,
@@ -167,7 +169,8 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
       name: (form.name ?? '').trim(),
       avgCost: Number(form.avgCost) || 0,
       units: Number(form.units) || 0,
-      goalPrice: Number(form.goalPrice) || 0,
+      buyGoalPrice: form.buyGoalPrice ? Number(form.buyGoalPrice) : undefined,
+      sellGoalPrice: form.sellGoalPrice ? Number(form.sellGoalPrice) : undefined,
       priceCurrency,
       manualPrice: form.manualPrice ? Number(form.manualPrice) : undefined,
       coinGeckoId: category === 'crypto' ? (form.coinGeckoId || CRYPTO_COINGECKO_MAP[(form.ticker ?? '').toUpperCase()]) : undefined,
@@ -291,17 +294,34 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
             </div>
           </div>
 
-          {/* Goal Price */}
-          <div className="space-y-1.5">
-            <Label>Goal Price ({priceCurrency})</Label>
-            <Input
-              type="number"
-              step="any"
-              min="0"
-              placeholder="0.00"
-              value={form.goalPrice ?? ''}
-              onChange={(e) => set('goalPrice', e.target.value)}
-            />
+          {/* Goal Prices */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Buy Goal ({priceCurrency})</Label>
+              <Input
+                type="number"
+                step="any"
+                min="0"
+                placeholder="optional"
+                value={form.buyGoalPrice ?? ''}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, buyGoalPrice: e.target.value ? Number(e.target.value) : undefined }))
+                }
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Sell Goal ({priceCurrency})</Label>
+              <Input
+                type="number"
+                step="any"
+                min="0"
+                placeholder="optional"
+                value={form.sellGoalPrice ?? ''}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, sellGoalPrice: e.target.value ? Number(e.target.value) : undefined }))
+                }
+              />
+            </div>
           </div>
 
           {/* Manual Price Override */}

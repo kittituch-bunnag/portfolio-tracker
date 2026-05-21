@@ -9,7 +9,7 @@ import { formatCurrency, formatPercent, formatNumber, formatPrice } from '@/util
 import { convertCurrency } from '@/utils/calculations'
 import { cn } from '@/lib/utils'
 
-type SortKey = 'name' | 'currentValue' | 'pnlValue' | 'pnlPercent' | 'toGoalPercent'
+type SortKey = 'name' | 'currentValue' | 'pnlValue' | 'pnlPercent' | 'toSellGoalPercent'
 
 interface AssetTableProps {
   assets: AssetWithMarketData[]
@@ -49,7 +49,7 @@ export function AssetTable({
     if (sortKey === 'currentValue') { aVal = convert(a, a.currentValue); bVal = convert(b, b.currentValue) }
     else if (sortKey === 'pnlValue') { aVal = convert(a, a.pnlValue); bVal = convert(b, b.pnlValue) }
     else if (sortKey === 'pnlPercent') { aVal = a.pnlPercent; bVal = b.pnlPercent }
-    else if (sortKey === 'toGoalPercent') { aVal = a.toGoalPercent; bVal = b.toGoalPercent }
+    else if (sortKey === 'toSellGoalPercent') { aVal = a.toSellGoalPercent; bVal = b.toSellGoalPercent }
     return sortDir === 'asc' ? aVal - bVal : bVal - aVal
   })
 
@@ -101,9 +101,9 @@ export function AssetTable({
               <TableHead className="text-right">
                 <SortBtn k="pnlPercent" label="P&L %" />
               </TableHead>
-              <TableHead className="text-right">Goal Price</TableHead>
+              <TableHead className="text-right">Buy Goal</TableHead>
               <TableHead className="text-right">
-                <SortBtn k="toGoalPercent" label="To Goal" />
+                <SortBtn k="toSellGoalPercent" label="Sell Goal" />
               </TableHead>
               <TableHead className="w-20" />
             </TableRow>
@@ -118,7 +118,6 @@ export function AssetTable({
             )}
             {sorted.map((asset, idx) => {
               const isPnlPos = asset.pnlValue >= 0
-              const isToGoalPos = asset.toGoalPercent >= 0
               return (
                 <TableRow key={asset.id}>
                   <TableCell className="text-muted-foreground text-xs">{idx + 1}</TableCell>
@@ -159,13 +158,29 @@ export function AssetTable({
                       </Badge>
                     ) : '—'}
                   </TableCell>
-                  <TableCell className="text-right font-mono text-sm">{fmtPrice(asset, asset.goalPrice)}</TableCell>
                   <TableCell className="text-right">
-                    {asset.currentPrice > 0 ? (
-                      <Badge variant={isToGoalPos ? 'profit' : 'loss'}>
-                        {formatPercent(asset.toGoalPercent)}
-                      </Badge>
-                    ) : '—'}
+                    {asset.buyGoalPrice ? (
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="font-mono text-sm">{fmtPrice(asset, asset.buyGoalPrice)}</span>
+                        {asset.currentPrice > 0 && (
+                          <Badge variant={asset.toBuyGoalPercent >= 0 ? 'profit' : 'loss'}>
+                            {formatPercent(asset.toBuyGoalPercent)}
+                          </Badge>
+                        )}
+                      </div>
+                    ) : <span className="text-muted-foreground text-xs">—</span>}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {asset.sellGoalPrice ? (
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="font-mono text-sm">{fmtPrice(asset, asset.sellGoalPrice)}</span>
+                        {asset.currentPrice > 0 && (
+                          <Badge variant={asset.toSellGoalPercent >= 0 ? 'profit' : 'loss'}>
+                            {formatPercent(asset.toSellGoalPercent)}
+                          </Badge>
+                        )}
+                      </div>
+                    ) : <span className="text-muted-foreground text-xs">—</span>}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">

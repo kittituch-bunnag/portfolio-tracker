@@ -72,7 +72,6 @@ function isValidAsset(a: unknown): boolean {
     typeof asset.name === 'string' &&
     typeof asset.avgCost === 'number' &&
     typeof asset.units === 'number' &&
-    typeof asset.goalPrice === 'number' &&
     typeof asset.priceCurrency === 'string'
   )
 }
