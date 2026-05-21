@@ -157,10 +157,7 @@ export function Summary() {
                 <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-30} textAnchor="end" interval={0} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => formatCurrency(v, displayCurrency, true)} />
                 <RTooltip
-                  formatter={(v: number, name: string) => [
-                    formatCurrency(v, displayCurrency),
-                    name === 'value' ? 'Mkt. Value' : 'Cost Basis',
-                  ]}
+                  formatter={(v: number, name: string) => [formatCurrency(v, displayCurrency), name]}
                 />
                 <Legend />
                 <Bar dataKey="cost" name="Cost Basis" fill="#94a3b8" radius={[4, 4, 0, 0]} />
