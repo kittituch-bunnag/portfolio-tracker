@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, TrendingUp } from 'lucide-react'
+import { RefreshCw, TrendingUp, FolderOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePortfolioStore } from '@/store/portfolioStore'
 import { fetchUsdToThb } from '@/services/exchangeRate'
-
+import { ImportExportDialog } from '@/components/ImportExportDialog'
 import { cn } from '@/lib/utils'
 
 export function Header() {
   const { displayCurrency, setDisplayCurrency, usdToThb, setExchangeRate, lastExchangeRateUpdate } =
     usePortfolioStore()
   const [fetchingRate, setFetchingRate] = useState(false)
+  const [ioOpen, setIoOpen] = useState(false)
 
   async function refreshRate() {
     setFetchingRate(true)
@@ -32,6 +33,7 @@ export function Header() {
   }, [])
 
   return (
+    <>
     <header className="sticky top-0 z-30 h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-full items-center justify-between px-4 gap-4">
         {/* Logo */}
@@ -42,6 +44,11 @@ export function Header() {
 
         {/* Right controls */}
         <div className="flex items-center gap-3">
+          {/* Import / Export */}
+          <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => setIoOpen(true)}>
+            <FolderOpen className="h-4 w-4" />
+            <span className="hidden sm:inline text-xs">Import / Export</span>
+          </Button>
           {/* Exchange rate */}
           <div className="hidden sm:flex items-center gap-1.5 text-sm text-muted-foreground">
             <span>1 USD =</span>
@@ -71,5 +78,8 @@ export function Header() {
         </div>
       </div>
     </header>
+
+    <ImportExportDialog open={ioOpen} onOpenChange={setIoOpen} />
+    </>
   )
 }

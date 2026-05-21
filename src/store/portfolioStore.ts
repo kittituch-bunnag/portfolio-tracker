@@ -13,6 +13,7 @@ interface PortfolioState {
   removeAsset: (id: string) => void
   setDisplayCurrency: (currency: DisplayCurrency) => void
   setExchangeRate: (rate: number) => void
+  importAssets: (incoming: Asset[], mode: 'merge' | 'replace') => void
 }
 
 export const usePortfolioStore = create<PortfolioState>()(
@@ -38,6 +39,14 @@ export const usePortfolioStore = create<PortfolioState>()(
 
       setExchangeRate: (rate) =>
         set({ usdToThb: rate, lastExchangeRateUpdate: new Date().toISOString() }),
+
+      importAssets: (incoming, mode) =>
+        set((state) => {
+          if (mode === 'replace') return { assets: incoming }
+          const existingIds = new Set(state.assets.map((a) => a.id))
+          const newAssets = incoming.filter((a) => !existingIds.has(a.id))
+          return { assets: [...state.assets, ...newAssets] }
+        }),
     }),
     { name: 'investment-portfolio-v1' }
   )
