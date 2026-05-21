@@ -42,7 +42,11 @@ Uses `node:https` (not `fetch`/undici) to avoid TLS issues on Windows. Requires 
 - Route to it in `fetchPricesForAssets()` based on category or a new asset field
 
 ### Thai Mutual Funds
-NAV is fetched from Finnomena's internal API (`/fn3/api/fund/nav/latest?fund={short_code}`) via the Finnomena Vite plugin. Requires `FINNOMENA_EMAIL` and `FINNOMENA_PASSWORD` in `.env.local` (server-side only, never exposed to browser). Falls back to manual price override if credentials are not set. See README for setup.
+NAV is fetched from Finnomena's public API (`/fn3/api/fund/v2/public/funds/{fund_id}/latest`) via the `/api/finnomena-public` proxy — **no credentials required**. The fund's `fund_id` (e.g. `F00001CKTY`) is stored on the asset as `finnomenaFundId` and resolved at fetch time. Assets without a `fund_id` fall back to a cache lookup by `short_code`; if neither is available the asset skips auto-price.
+
+The ticker input in AssetForm for `thai-mutual-funds` shows a live search autocomplete backed by `/fn3/api/fund/v2/public/funds` (7 056 funds, cached in memory). Selecting a result populates `ticker` (= `short_code`), `name` (Thai name), and `finnomenaFundId`.
+
+`FINNOMENA_EMAIL` / `FINNOMENA_PASSWORD` in `.env.local` are still supported (server-side only) for the auth-gated `/api/finnomena/*` proxy, but are no longer required for NAV fetching. Falls back to manual price override if neither auto-price source works. See README for setup.
 
 ## File Map
 | Path | Purpose |
@@ -83,5 +87,6 @@ npx tsc --noEmit   # type check
 ## Proxied API Endpoints
 - `/api/yahoo/*` → `https://query1.finance.yahoo.com/*` (custom Vite plugin — cookie+crumb auth via fc.yahoo.com)
 - `/api/finnomena/*` → `https://www.finnomena.com/*` (custom Vite plugin — email/password auth → access_token cookie)
+- `/api/finnomena-public/*` → `https://www.finnomena.com/*` (simple proxy — no auth, for public endpoints)
 - `/api/coingecko/*` → `https://api.coingecko.com/*`
 - `/api/exchangerate/*` → `https://open.er-api.com/*`

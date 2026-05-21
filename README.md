@@ -36,30 +36,20 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | Gold (futures) | Yahoo Finance | `GC=F` |
 | Gold (ETF) | Yahoo Finance | `GLD` or `SPDR.BK` |
 | Crypto | CoinGecko | `BTC`, `ETH`, `SOL` (+ CoinGecko ID) |
-| Thai Mutual Funds | Finnomena (auto) / Manual | Fund short code e.g. `KFLTFDIV-A` |
+| Thai Mutual Funds | Finnomena public API (auto) / Manual | Search by fund name or code in the Add Asset form |
 | Cash & Emergency | Manual price override | Any label |
 
 ### Thai Mutual Funds — NAV Data
 
-NAV prices are fetched automatically from [Finnomena](https://www.finnomena.com/) when you provide your account credentials. Without credentials, enter a manual price override instead.
+NAV prices are fetched automatically from Finnomena's public API — **no account or credentials needed**.
 
-#### Setting up Finnomena auto-fetch
+#### Adding a Thai mutual fund
 
-1. Create a file named `.env.local` in the project root (already in `.gitignore`)
-2. Add your Finnomena login credentials:
-
-```env
-FINNOMENA_EMAIL=your@email.com
-FINNOMENA_PASSWORD=yourpassword
-```
-
-3. Restart `npm run dev` — the server will log `[finnomena-proxy] auth OK` on success.
-
-The ticker field for Thai mutual funds should be the **Finnomena fund short code** (e.g. `KFLTFDIV-A`, `KFTRB-A`). You can find this in the URL when viewing a fund on Finnomena.
+When adding a new asset with type **Thai Mutual Funds**, type at least 2 characters of the fund name or short code in the Ticker field. A dropdown will appear with matching funds (searched across all 7 000+ Finnomena-listed funds). Select the fund to auto-fill the code, Thai name, and internal fund ID used for NAV fetching.
 
 #### Manual price fallback
 
-If you prefer not to use credentials, set a **Manual Price Override** on any fund asset. The manual price is used as-is and skips all API fetches. Update it daily from:
+If a fund has no NAV available via the API, set a **Manual Price Override** on the asset. The manual price is used as-is and skips all API fetches. Update it daily from:
 - Your fund company's app (KAsset, SCBAM, Krungsri Asset, etc.)
 - [Finnomena](https://www.finnomena.com/)
 - [Morningstar Thailand](https://www.morningstar.in.th/)
