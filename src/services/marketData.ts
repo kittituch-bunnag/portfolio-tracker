@@ -24,18 +24,21 @@ export async function fetchYahooPrices(tickers: string[]): Promise<MarketPrice[]
 // ---------------------------------------------------------------------------
 // CoinGecko — crypto prices in USD
 // ---------------------------------------------------------------------------
-export async function fetchCoinGeckoPrices(coinIds: string[]): Promise<MarketPrice[]> {
-  if (coinIds.length === 0) return []
+async function fetchCoinGeckoRaw(coinIds: string[]): Promise<Record<string, Record<string, number>>> {
+  if (coinIds.length === 0) return {}
   const ids = coinIds.join(',')
   const url = `/api/coingecko/api/v3/simple/price?ids=${encodeURIComponent(ids)}&vs_currencies=usd,thb&include_24hr_change=true`
   const res = await fetch(url)
   if (!res.ok) throw new Error(`CoinGecko error: ${res.status}`)
-  const data: Record<string, Record<string, number>> = await res.json()
+  return res.json()
+}
 
+export async function fetchCoinGeckoPrices(coinIds: string[]): Promise<MarketPrice[]> {
+  const data = await fetchCoinGeckoRaw(coinIds)
   return Object.entries(data).map(([id, prices]) => ({
     ticker: id,
     price: prices.usd ?? 0,
-    currency: 'USD',
+    currency: 'USD' as const,
     change24h: undefined,
     changePercent24h: prices.usd_24h_change ?? 0,
   }))
@@ -185,11 +188,13 @@ export async function fetchPricesForAssets(assets: Asset[]): Promise<Map<string,
     try {
       const ids = cryptoAssets.filter((a) => a.coinGeckoId).map((a) => a.coinGeckoId!)
       if (ids.length > 0) {
-        const prices = await fetchCoinGeckoPrices(ids)
+        const raw = await fetchCoinGeckoRaw(ids)
         for (const asset of cryptoAssets) {
           if (!asset.coinGeckoId) continue
-          const match = prices.find((p) => p.ticker === asset.coinGeckoId)
-          if (match) priceMap.set(asset.id, match.price)
+          const prices = raw[asset.coinGeckoId]
+          if (!prices) continue
+          const price = asset.priceCurrency === 'THB' ? (prices.thb ?? 0) : (prices.usd ?? 0)
+          priceMap.set(asset.id, price)
         }
       }
     } catch (e) {
