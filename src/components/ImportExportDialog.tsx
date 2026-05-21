@@ -3,7 +3,7 @@ import { Download, Upload, FileJson, AlertCircle, CheckCircle2 } from 'lucide-re
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { usePortfolioStore } from '@/store/portfolioStore'
-import { exportToJson, parseImportFile, PortfolioExport } from '@/utils/dataIO'
+import { exportToJson, flattenExport, parseImportFile, PortfolioExport } from '@/utils/dataIO'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -22,6 +22,9 @@ export function ImportExportDialog({ open, onOpenChange }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [importing, setImporting] = useState(false)
+
+  const pendingFlat = pending ? flattenExport(pending) : []
+  const duplicateCount = pendingFlat.filter((a) => assets.some((e) => e.id === a.id)).length
 
   function handleExport() {
     exportToJson(assets)
@@ -49,11 +52,11 @@ export function ImportExportDialog({ open, onOpenChange }: Props) {
   function handleConfirmImport() {
     if (!pending) return
     setImporting(true)
-    importAssets(pending.assets, mode)
+    importAssets(pendingFlat, mode)
     const added =
       mode === 'replace'
-        ? pending.assets.length
-        : pending.assets.filter((a) => !assets.some((e) => e.id === a.id)).length
+        ? pendingFlat.length
+        : pendingFlat.filter((a) => !assets.some((e) => e.id === a.id)).length
     setSuccess(
       mode === 'replace'
         ? `Replaced all assets with ${added} from file.`
@@ -71,10 +74,6 @@ export function ImportExportDialog({ open, onOpenChange }: Props) {
     }
     onOpenChange(v)
   }
-
-  const duplicateCount = pending
-    ? pending.assets.filter((a) => assets.some((e) => e.id === a.id)).length
-    : 0
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -131,8 +130,12 @@ export function ImportExportDialog({ open, onOpenChange }: Props) {
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <FileJson className="h-4 w-4 shrink-0" />
                   <span>
-                    <strong className="text-foreground">{pending.assets.length}</strong> asset
-                    {pending.assets.length !== 1 ? 's' : ''} found
+                    <strong className="text-foreground">{pendingFlat.length}</strong> asset
+                    {pendingFlat.length !== 1 ? 's' : ''} across{' '}
+                    <strong className="text-foreground">
+                      {Object.keys(pending.assets).length}
+                    </strong>{' '}
+                    categor{Object.keys(pending.assets).length !== 1 ? 'ies' : 'y'}
                     {duplicateCount > 0 && (
                       <span className="text-amber-600 dark:text-amber-400">
                         {' '}({duplicateCount} duplicate ID{duplicateCount !== 1 ? 's' : ''})
