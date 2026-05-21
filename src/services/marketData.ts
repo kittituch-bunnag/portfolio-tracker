@@ -1,7 +1,7 @@
 import { Asset, MarketPrice } from '@/types'
 
 // ---------------------------------------------------------------------------
-// Yahoo Finance — covers US stocks, ETFs, Thai stocks (.BK), gold (GC=F), etc.
+// Yahoo Finance — US stocks, ETFs, Thai stocks (.BK), gold (GC=F), etc.
 // ---------------------------------------------------------------------------
 export async function fetchYahooPrices(tickers: string[]): Promise<MarketPrice[]> {
   if (tickers.length === 0) return []
@@ -22,7 +22,7 @@ export async function fetchYahooPrices(tickers: string[]): Promise<MarketPrice[]
 }
 
 // ---------------------------------------------------------------------------
-// CoinGecko — crypto prices in both USD and THB
+// CoinGecko — crypto prices in USD
 // ---------------------------------------------------------------------------
 export async function fetchCoinGeckoPrices(coinIds: string[]): Promise<MarketPrice[]> {
   if (coinIds.length === 0) return []
@@ -59,17 +59,56 @@ export async function searchCoinGeckoId(query: string): Promise<{ id: string; sy
 }
 
 // ---------------------------------------------------------------------------
-// Batch fetch for all assets in a category
+// Finnomena — Thai mutual fund NAV (requires FINNOMENA_EMAIL + FINNOMENA_PASSWORD in .env.local)
+// ---------------------------------------------------------------------------
+export async function fetchFinnomenaNavPrices(assets: Asset[]): Promise<MarketPrice[]> {
+  if (assets.length === 0) return []
+
+  const results = await Promise.allSettled(
+    assets.map(async (asset): Promise<MarketPrice | null> => {
+      const url = `/api/finnomena/fn3/api/fund/nav/latest?fund=${encodeURIComponent(asset.ticker)}`
+      const res = await fetch(url)
+      const data = await res.json()
+      if (!res.ok) throw new Error(`Finnomena error ${res.status}: ${data?.error ?? ''}`)
+
+      // Try multiple response shapes until one yields a number
+      const nav = data?.nav ?? data?.data?.nav ?? data?.last_val ?? data?.value ?? null
+      if (nav == null) {
+        console.warn(`[finnomena] no NAV field found for ${asset.ticker} — raw:`, JSON.stringify(data).slice(0, 200))
+        return null
+      }
+
+      return {
+        ticker: asset.ticker,
+        price: Number(nav),
+        currency: 'THB',
+        change24h: undefined,
+        changePercent24h: undefined,
+      }
+    }),
+  )
+
+  return results
+    .filter((r): r is PromiseFulfilledResult<MarketPrice | null> => r.status === 'fulfilled')
+    .map((r) => r.value)
+    .filter((v): v is MarketPrice => v !== null)
+}
+
+// ---------------------------------------------------------------------------
+// Batch fetch — routes each asset to the right price source
 // ---------------------------------------------------------------------------
 export async function fetchPricesForAssets(assets: Asset[]): Promise<Map<string, number>> {
   const priceMap = new Map<string, number>()
 
-  // Group by source
-  const yahooAssets = assets.filter(
-    (a) => !['crypto'].includes(a.category) && a.category !== 'emergency-cash' && !a.manualPrice
-  )
-  const cryptoAssets = assets.filter((a) => a.category === 'crypto' && !a.manualPrice)
   const manualAssets = assets.filter((a) => a.manualPrice != null)
+  const yahooAssets = assets.filter(
+    (a) => a.category !== 'crypto' &&
+           a.category !== 'emergency-cash' &&
+           a.category !== 'thai-mutual-funds' &&
+           !a.manualPrice,
+  )
+  const finnomenaAssets = assets.filter((a) => a.category === 'thai-mutual-funds' && !a.manualPrice)
+  const cryptoAssets = assets.filter((a) => a.category === 'crypto' && !a.manualPrice)
 
   // Manual overrides
   for (const asset of manualAssets) {
@@ -87,6 +126,19 @@ export async function fetchPricesForAssets(assets: Asset[]): Promise<Map<string,
       }
     } catch (e) {
       console.warn('Yahoo Finance fetch failed:', e)
+    }
+  }
+
+  // Finnomena (Thai mutual funds)
+  if (finnomenaAssets.length > 0) {
+    try {
+      const prices = await fetchFinnomenaNavPrices(finnomenaAssets)
+      for (const asset of finnomenaAssets) {
+        const match = prices.find((p) => p.ticker.toUpperCase() === asset.ticker.toUpperCase())
+        if (match) priceMap.set(asset.id, match.price)
+      }
+    } catch (e) {
+      console.warn('Finnomena fetch failed:', e)
     }
   }
 
