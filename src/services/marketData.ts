@@ -59,22 +59,60 @@ export async function searchCoinGeckoId(query: string): Promise<{ id: string; sy
 }
 
 // ---------------------------------------------------------------------------
+// Finnomena public fund list — no auth required
+// ---------------------------------------------------------------------------
+export interface FinnomenaFund { fund_id: string; short_code: string; name_th: string }
+let finnomenaFundCache: FinnomenaFund[] | null = null
+
+export async function searchFinnomenaFund(query: string): Promise<FinnomenaFund[]> {
+  if (!finnomenaFundCache) {
+    const res = await fetch('/api/finnomena-public/fn3/api/fund/v2/public/funds')
+    if (!res.ok) throw new Error('Finnomena fund list fetch failed')
+    const data = await res.json()
+    finnomenaFundCache = (data.data ?? []) as FinnomenaFund[]
+  }
+  const q = query.toLowerCase()
+  return finnomenaFundCache
+    .filter((f) => f.short_code.toLowerCase().includes(q) || f.name_th.toLowerCase().includes(q))
+    .slice(0, 10)
+}
+
+// ---------------------------------------------------------------------------
 // Finnomena — Thai mutual fund NAV (requires FINNOMENA_EMAIL + FINNOMENA_PASSWORD in .env.local)
 // ---------------------------------------------------------------------------
 export async function fetchFinnomenaNavPrices(assets: Asset[]): Promise<MarketPrice[]> {
   if (assets.length === 0) return []
 
+  // Warm up the fund list cache so we can resolve short_code → fund_id.
+  // NAV endpoint returns {} for short_codes; it requires fund_id.
+  if (!finnomenaFundCache) {
+    try {
+      const res = await fetch('/api/finnomena-public/fn3/api/fund/v2/public/funds')
+      if (res.ok) {
+        const data = await res.json()
+        finnomenaFundCache = (data.data ?? []) as FinnomenaFund[]
+      }
+    } catch { /* non-fatal — fall back to ticker below */ }
+  }
+
   const results = await Promise.allSettled(
     assets.map(async (asset): Promise<MarketPrice | null> => {
-      const url = `/api/finnomena/fn3/api/fund/nav/latest?fund=${encodeURIComponent(asset.ticker)}`
+      const fundId = asset.finnomenaFundId
+        ?? finnomenaFundCache?.find((f) => f.short_code === asset.ticker)?.fund_id
+      if (!fundId) {
+        console.warn(`[finnomena] no fund_id for ${asset.ticker} — re-add via fund search to enable NAV`)
+        return null
+      }
+
+      // Public v2 endpoint — no auth required, fund_id in path
+      const url = `/api/finnomena-public/fn3/api/fund/v2/public/funds/${encodeURIComponent(fundId)}/latest`
       const res = await fetch(url)
       const data = await res.json()
-      if (!res.ok) throw new Error(`Finnomena error ${res.status}: ${data?.error ?? ''}`)
+      if (!res.ok) throw new Error(`Finnomena error ${res.status}`)
 
-      // Try multiple response shapes until one yields a number
-      const nav = data?.nav ?? data?.data?.nav ?? data?.last_val ?? data?.value ?? null
+      const nav = data?.data?.value ?? null
       if (nav == null) {
-        console.warn(`[finnomena] no NAV field found for ${asset.ticker} — raw:`, JSON.stringify(data).slice(0, 200))
+        console.warn(`[finnomena] no NAV for ${asset.ticker} (${fundId}) — raw:`, JSON.stringify(data).slice(0, 200))
         return null
       }
 
@@ -83,7 +121,7 @@ export async function fetchFinnomenaNavPrices(assets: Asset[]): Promise<MarketPr
         price: Number(nav),
         currency: 'THB',
         change24h: undefined,
-        changePercent24h: undefined,
+        changePercent24h: data?.data?.d_change != null ? Number(data.data.d_change) : undefined,
       }
     }),
   )

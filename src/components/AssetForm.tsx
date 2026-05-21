@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { Asset, AssetCategory, AssetCurrency } from '@/types'
+import { searchFinnomenaFund, FinnomenaFund } from '@/services/marketData'
 import {
   Dialog,
   DialogContent,
@@ -82,12 +83,16 @@ const EMPTY: Partial<Asset> = {
   goalPrice: 0,
   manualPrice: undefined,
   coinGeckoId: undefined,
+  finnomenaFundId: undefined,
 }
 
 export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, onSave }: AssetFormProps) {
   const [category, setCategory] = useState<AssetCategory>(defaultCategory ?? 'us-stocks')
   const [priceCurrency, setPriceCurrency] = useState<AssetCurrency>('USD')
   const [form, setForm] = useState<typeof EMPTY>(EMPTY)
+  const [fundSuggestions, setFundSuggestions] = useState<FinnomenaFund[]>([])
+  const [fundDropdownOpen, setFundDropdownOpen] = useState(false)
+  const tickerWrapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (open) {
@@ -102,6 +107,7 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
           goalPrice: initialAsset.goalPrice,
           manualPrice: initialAsset.manualPrice,
           coinGeckoId: initialAsset.coinGeckoId,
+          finnomenaFundId: initialAsset.finnomenaFundId,
         })
       } else {
         const cat = defaultCategory ?? 'us-stocks'
@@ -115,6 +121,33 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
   function handleCategoryChange(cat: AssetCategory) {
     setCategory(cat)
     setPriceCurrency(CATEGORY_CURRENCY_DEFAULT[cat])
+    setFundDropdownOpen(false)
+    setFundSuggestions([])
+  }
+
+  async function handleTickerChange(value: string) {
+    set('ticker', value)
+    if (category === 'thai-mutual-funds' && value.length >= 2) {
+      try {
+        const results = await searchFinnomenaFund(value)
+        setFundSuggestions(results)
+        setFundDropdownOpen(results.length > 0)
+      } catch {
+        setFundDropdownOpen(false)
+      }
+    } else {
+      setFundDropdownOpen(false)
+    }
+  }
+
+  function handleFundSelect(fund: FinnomenaFund) {
+    setForm((f) => ({
+      ...f,
+      ticker: fund.short_code,
+      name: f.name || fund.name_th,
+      finnomenaFundId: fund.fund_id,
+    }))
+    setFundDropdownOpen(false)
   }
 
   function handleTickerBlur() {
@@ -138,6 +171,7 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
       priceCurrency,
       manualPrice: form.manualPrice ? Number(form.manualPrice) : undefined,
       coinGeckoId: category === 'crypto' ? (form.coinGeckoId || CRYPTO_COINGECKO_MAP[(form.ticker ?? '').toUpperCase()]) : undefined,
+      finnomenaFundId: category === 'thai-mutual-funds' ? form.finnomenaFundId : undefined,
       lastUpdated: new Date().toISOString(),
     }
     onSave(asset)
@@ -178,13 +212,32 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
           {/* Ticker */}
           <div className="space-y-1.5">
             <Label>Ticker / Code</Label>
-            <Input
-              placeholder={CATEGORY_TICKER_HINT[category]}
-              value={form.ticker ?? ''}
-              onChange={(e) => set('ticker', e.target.value)}
-              onBlur={handleTickerBlur}
-              required
-            />
+            <div className="relative" ref={tickerWrapRef}>
+              <Input
+                placeholder={CATEGORY_TICKER_HINT[category]}
+                value={form.ticker ?? ''}
+                onChange={(e) => handleTickerChange(e.target.value)}
+                onBlur={handleTickerBlur}
+                autoComplete="off"
+                required
+              />
+              {fundDropdownOpen && (
+                <ul className="absolute z-50 w-full mt-1 max-h-56 overflow-y-auto rounded-md border border-border bg-popover shadow-md text-sm">
+                  {fundSuggestions.map((fund) => (
+                    <li key={fund.fund_id}>
+                      <button
+                        type="button"
+                        className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground"
+                        onMouseDown={(e) => { e.preventDefault(); handleFundSelect(fund) }}
+                      >
+                        <span className="font-medium">{fund.short_code}</span>
+                        <span className="ml-2 text-muted-foreground truncate">{fund.name_th}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
 
           {/* Name */}

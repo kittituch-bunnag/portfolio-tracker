@@ -20,7 +20,8 @@ export interface Asset {
   units: number
   goalPrice: number      // target price (in priceCurrency)
   priceCurrency: AssetCurrency
-  coinGeckoId?: string   // for crypto assets
+  coinGeckoId?: string       // for crypto assets
+  finnomenaFundId?: string   // for Thai mutual funds (fund_id from Finnomena)
   manualPrice?: number   // override API price
   lastPriceFetched?: number
   lastUpdated?: string

@@ -142,42 +142,55 @@ function yahooFinancePlugin(): Plugin {
 interface FinnomenaAuth { cookie: string; expiry: number }
 let finnomenaAuth: FinnomenaAuth | null = null
 
+function buildCookieHeader(rawSetCookies: string[]): string {
+  return rawSetCookies.map((c) => c.split(';')[0]).filter(Boolean).join('; ')
+}
+
 async function refreshFinnomenaAuth(email: string, password: string): Promise<FinnomenaAuth> {
-  // Step 1: get login challenge from the auth redirect URL
+  // Step 1: get login challenge — the redirect chain visits auth.finnomena.com/oauth2/auth
+  // which sets a Hydra session cookie we must carry through all subsequent requests.
   const loginActionRes = await nodeGet(
     'https://www.finnomena.com/fn3/api/auth/loginaction?return_url=https://www.finnomena.com/&action=login&device=web',
     { 'User-Agent': UA },
   )
-  const challenge = loginActionRes.finalUrl.split('=').pop() ?? ''
-  if (!challenge) throw new Error('Finnomena: could not extract login challenge')
+  const challenge = new URL(loginActionRes.finalUrl).searchParams.get('challenge') ?? ''
+  if (!challenge) throw new Error(`Finnomena: could not extract login challenge from URL: ${loginActionRes.finalUrl}`)
+
+  // Carry all cookies from the loginaction redirect chain into the POST.
+  // auth.finnomena.com (Hydra) sets a session cookie here that must be present
+  // when we follow redirect_to in Step 3, otherwise Hydra can't match the verifier.
+  const step1Cookies = buildCookieHeader(loginActionRes.setCookies)
 
   // Step 2: POST credentials to auth server
   const loginRes = await nodePost(
     'https://auth.finnomena.com/api/web/login',
     { email, password, challenge },
-    { 'User-Agent': UA },
+    { 'User-Agent': UA, ...(step1Cookies ? { Cookie: step1Cookies } : {}) },
   )
   let redirectTo: string
   try {
     const loginData = JSON.parse(loginRes.body)
-    redirectTo = loginData?.data?.redirect_to ?? ''
-  } catch {
-    throw new Error(`Finnomena login failed (HTTP ${loginRes.status}): ${loginRes.body.slice(0, 200)}`)
+    redirectTo = (loginData?.data as Record<string, unknown>)?.redirect_to as string ?? ''
+    if (!redirectTo) throw new Error(`Finnomena login: no redirect_to in response: ${loginRes.body.slice(0, 200)}`)
+  } catch (e) {
+    if (e instanceof SyntaxError) throw new Error(`Finnomena login failed (HTTP ${loginRes.status}): ${loginRes.body.slice(0, 200)}`)
+    throw e
   }
-  if (!redirectTo) throw new Error(`Finnomena login: no redirect_to in response: ${loginRes.body.slice(0, 200)}`)
 
-  // Step 3: follow redirect to get access_token cookie
-  const redirectRes = await nodeGet(redirectTo, { 'User-Agent': UA })
-  const allCookies = [...loginRes.setCookies, ...redirectRes.setCookies]
+  // Step 3: follow redirect_to — merge Step 1 + Step 2 cookies so Hydra recognises the session.
+  const step3Cookies = buildCookieHeader([...loginActionRes.setCookies, ...loginRes.setCookies])
+  const redirectRes = await nodeGet(redirectTo, { 'User-Agent': UA, ...(step3Cookies ? { Cookie: step3Cookies } : {}) })
+
+  const allCookies = [...loginActionRes.setCookies, ...loginRes.setCookies, ...redirectRes.setCookies]
   const cookieMap = new Map<string, string>()
   for (const c of allCookies) {
     const eqIdx = c.indexOf('=')
     if (eqIdx === -1) continue
-    cookieMap.set(c.slice(0, eqIdx).trim(), c.slice(eqIdx + 1).trim())
+    cookieMap.set(c.slice(0, eqIdx).trim(), c.split(';')[0].slice(eqIdx + 1).trim())
   }
 
   const accessToken = cookieMap.get('access_token')
-  if (!accessToken) throw new Error('Finnomena login: access_token cookie not received')
+  if (!accessToken) throw new Error(`Finnomena login: access_token cookie not received. Got: [${[...cookieMap.keys()].join(', ')}]`)
 
   finnomenaAuth = { cookie: `access_token=${accessToken}`, expiry: Date.now() + 60 * 60 * 1000 }
   return finnomenaAuth
@@ -202,8 +215,7 @@ function finnomenaPlugin(email: string, password: string): Plugin {
             { 'User-Agent': UA, Cookie: finnomenaAuth!.cookie },
           )
 
-          // {} means auth expired — refresh once and retry
-          if (upstream.body === '{}' || upstream.status === 401) {
+          if (upstream.status === 401) {
             await refreshFinnomenaAuth(email, password)
             const retry = await nodeGet(
               `https://www.finnomena.com${req.url}`,
@@ -254,6 +266,11 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        '/api/finnomena-public': {
+          target: 'https://www.finnomena.com',
+          changeOrigin: true,
+          rewrite: (p) => p.replace(/^\/api\/finnomena-public/, ''),
+        },
         '/api/coingecko': {
           target: 'https://api.coingecko.com',
           changeOrigin: true,
