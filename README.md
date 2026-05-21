@@ -36,18 +36,33 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | Gold (futures) | Yahoo Finance | `GC=F` |
 | Gold (ETF) | Yahoo Finance | `GLD` or `SPDR.BK` |
 | Crypto | CoinGecko | `BTC`, `ETH`, `SOL` (+ CoinGecko ID) |
-| Thai Mutual Funds | Manual / Yahoo Finance | Some funds: `KFLTFDIV-A.BK` |
+| Thai Mutual Funds | Finnomena (auto) / Manual | Fund short code e.g. `KFLTFDIV-A` |
 | Cash & Emergency | Manual price override | Any label |
 
 ### Thai Mutual Funds — NAV Data
 
-Thai mutual fund NAVs are **not available** from a free public API without authentication. Options:
+NAV prices are fetched automatically from [Finnomena](https://www.finnomena.com/) when you provide your account credentials. Without credentials, enter a manual price override instead.
 
-1. **Manual price override** — enter the latest NAV in the "Manual Price Override" field. Update daily from:
-   - Your fund company's app (KASSET, SCBAM, Krungsri Asset, etc.)
-   - [Finnomena](https://www.finnomena.com/)
-   - [Morningstar Thailand](https://www.morningstar.in.th/)
-2. **Yahoo Finance** — some Thai fund ETFs are listed with `.BK` suffix. Try typing the fund code + `.BK`.
+#### Setting up Finnomena auto-fetch
+
+1. Create a file named `.env.local` in the project root (already in `.gitignore`)
+2. Add your Finnomena login credentials:
+
+```env
+FINNOMENA_EMAIL=your@email.com
+FINNOMENA_PASSWORD=yourpassword
+```
+
+3. Restart `npm run dev` — the server will log `[finnomena-proxy] auth OK` on success.
+
+The ticker field for Thai mutual funds should be the **Finnomena fund short code** (e.g. `KFLTFDIV-A`, `KFTRB-A`). You can find this in the URL when viewing a fund on Finnomena.
+
+#### Manual price fallback
+
+If you prefer not to use credentials, set a **Manual Price Override** on any fund asset. The manual price is used as-is and skips all API fetches. Update it daily from:
+- Your fund company's app (KAsset, SCBAM, Krungsri Asset, etc.)
+- [Finnomena](https://www.finnomena.com/)
+- [Morningstar Thailand](https://www.morningstar.in.th/)
 
 ## Import / Export
 

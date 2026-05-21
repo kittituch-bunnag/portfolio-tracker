@@ -11,7 +11,7 @@ Single-page React app (Vite + TypeScript) for personal investment portfolio trac
 - **Styling**: Tailwind CSS + shadcn/ui-style components (src/components/ui/)
 - **Charts**: Recharts
 - **Icons**: Lucide React + Google S2 favicon API + CoinGecko image URLs
-- **APIs**: Yahoo Finance proxy, CoinGecko proxy, open.er-api.com (all via Vite dev proxy)
+- **APIs**: Yahoo Finance proxy, CoinGecko proxy, open.er-api.com, Finnomena (all via Vite dev proxy/plugin)
 
 ## Key Architecture Decisions
 
@@ -42,7 +42,7 @@ Uses `node:https` (not `fetch`/undici) to avoid TLS issues on Windows. Requires 
 - Route to it in `fetchPricesForAssets()` based on category or a new asset field
 
 ### Thai Mutual Funds
-No free public NAV API exists. Users enter a manual price override. If the fund has a `.BK` Yahoo Finance ticker, they can use that. See README for details.
+NAV is fetched from Finnomena's internal API (`/fn3/api/fund/nav/latest?fund={short_code}`) via the Finnomena Vite plugin. Requires `FINNOMENA_EMAIL` and `FINNOMENA_PASSWORD` in `.env.local` (server-side only, never exposed to browser). Falls back to manual price override if credentials are not set. See README for setup.
 
 ## File Map
 | Path | Purpose |
@@ -81,6 +81,7 @@ npx tsc --noEmit   # type check
 `investment-portfolio-v1` — clear this key to reset all data.
 
 ## Proxied API Endpoints
-- `/api/yahoo/*` → `https://query1.finance.yahoo.com/*` (handled by custom Vite plugin with cookie+crumb auth)
+- `/api/yahoo/*` → `https://query1.finance.yahoo.com/*` (custom Vite plugin — cookie+crumb auth via fc.yahoo.com)
+- `/api/finnomena/*` → `https://www.finnomena.com/*` (custom Vite plugin — email/password auth → access_token cookie)
 - `/api/coingecko/*` → `https://api.coingecko.com/*`
 - `/api/exchangerate/*` → `https://open.er-api.com/*`
