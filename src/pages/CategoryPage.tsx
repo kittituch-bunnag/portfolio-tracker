@@ -29,7 +29,7 @@ const CATEGORY_INFO: Record<AssetCategory, { title: string; description: string;
     title: 'Thai Mutual Funds',
     description: 'กองทุนรวมไทย — Thai registered funds',
     dataNote:
-      "Thai mutual fund NAVs cannot be fetched automatically. Enter a Manual Price Override, or check your fund company's app/website daily. Some funds have Yahoo Finance tickers (e.g. KFLTFDIV-A.BK) — try those first.",
+      "NAVs are fetched automatically from Finnomena. Search for a fund by name or ticker when adding it — the fund ID is set automatically. Use Manual Price Override only if a fund isn't found.",
   },
   'thai-stocks-drs': {
     title: 'Thai Stocks & DRs',
