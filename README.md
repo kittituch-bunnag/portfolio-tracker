@@ -11,10 +11,10 @@ A personal investment portfolio tracker built with React + Vite + TypeScript. Tr
 - **Full portfolio table** with: Avg. Cost, Units, Market Price, Market Value, Cost Basis, P&L, P&L %, Buy Goal, Sell Goal
 - **Charts** — allocation pie chart + P&L bar chart per category; portfolio-level charts on Summary page
 - **Summary dashboard** — total value, P&L, allocation breakdown, category table
-- **Asset icons** — Google favicon service for US stocks/ETFs, CoinGecko images for crypto, emoji fallbacks
+- **Asset icons** — Parqet logo CDN for US stocks, ETFs, and Thai stocks/DRs (100k+ tickers, no API key); CoinGecko images for crypto; emoji fallbacks
 - **Persistent storage** — all data stored in browser localStorage (no account or server needed)
 - **Import / Export** — back up your portfolio to JSON or load data from a file (merge or replace)
-- **Dark / light mode** — toggle via the Sun/Moon button in the header; defaults to system preference, persisted to localStorage
+- **Dark / light / auto mode** — cycles between Light ☀️, Dark 🌙, and Auto 🌓 via the header button; Auto switches at 06:00 (light) and 20:00 (dark) based on local time, rechecking every minute
 
 ## Quick Start
 

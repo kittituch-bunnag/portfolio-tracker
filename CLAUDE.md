@@ -60,12 +60,12 @@ The ticker input in AssetForm for `thai-mutual-funds` shows a live search autoco
 | `src/utils/formatters.ts` | `formatCurrency()`, `formatPercent()`, `formatNumber()` |
 | `src/components/AssetTable.tsx` | Main data table with sortable columns |
 | `src/components/AssetForm.tsx` | Add/edit asset modal dialog |
-| `src/components/AssetIcon.tsx` | Logo/emoji icons per asset |
+| `src/components/AssetIcon.tsx` | Logo/emoji icons per asset — Parqet CDN (`assets.parqet.com/logos/symbol/{TICKER}`) for US stocks, ETFs, and Thai stocks (`.BK`); DR tickers (`AAPL-R.BK`) strip `-R.BK` to resolve the underlying logo; CoinGecko images for crypto; emoji fallback |
 | `src/components/CategoryChart.tsx` | Allocation pie + P&L bar charts |
 | `src/components/Header.tsx` | Top bar — currency toggle, exchange rate, Import/Export button |
 | `src/components/ImportExportDialog.tsx` | Import / Export modal (merge or replace mode) |
 | `src/components/Sidebar.tsx` | Nav sidebar with asset counts |
-| `src/hooks/useTheme.ts` | Dark/light mode — reads system preference, persists to `localStorage`, toggles `dark` class on `<html>` |
+| `src/hooks/useTheme.ts` | Theme mode — three modes: `light`, `dark`, `auto`; persisted to `localStorage` as `themeMode`; auto resolves to light (06:00–20:00) or dark by local hour, rechecks every 60 s; `cycleMode()` steps light → dark → auto → light |
 | `src/pages/CategoryPage.tsx` | Shared page for all 7 categories |
 | `src/pages/Summary.tsx` | Portfolio dashboard |
 | `vite.config.ts` | Vite config + custom Yahoo Finance plugin + CoinGecko/exchangerate proxies |
