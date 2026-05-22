@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, TrendingUp, FolderOpen, Sun, Moon } from 'lucide-react'
+import { RefreshCw, TrendingUp, FolderOpen, Sun, Moon, SunMoon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePortfolioStore } from '@/store/portfolioStore'
 import { fetchUsdToThb } from '@/services/exchangeRate'
@@ -12,7 +12,7 @@ export function Header() {
     usePortfolioStore()
   const [fetchingRate, setFetchingRate] = useState(false)
   const [ioOpen, setIoOpen] = useState(false)
-  const { theme, toggle: toggleTheme } = useTheme()
+  const { theme, themeMode, cycleMode } = useTheme()
 
   async function refreshRate() {
     setFetchingRate(true)
@@ -60,9 +60,26 @@ export function Header() {
             </Button>
           </div>
 
-          {/* Theme toggle */}
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {/* Theme toggle — cycles: light → dark → auto */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={cycleMode}
+            aria-label={
+              themeMode === 'light' ? 'Switch to dark mode' :
+              themeMode === 'dark'  ? 'Switch to auto mode' :
+                                     'Switch to light mode'
+            }
+            title={
+              themeMode === 'light' ? 'Light mode' :
+              themeMode === 'dark'  ? 'Dark mode' :
+                                     `Auto (${theme === 'dark' ? 'dark' : 'light'} now)`
+            }
+          >
+            {themeMode === 'light' ? <Sun className="h-4 w-4" /> :
+             themeMode === 'dark'  ? <Moon className="h-4 w-4" /> :
+                                    <SunMoon className="h-4 w-4" />}
           </Button>
 
           {/* Currency toggle */}

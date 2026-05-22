@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { AssetCategory } from '@/types'
 
 const CATEGORY_EMOJI: Record<AssetCategory, string> = {
@@ -8,36 +9,6 @@ const CATEGORY_EMOJI: Record<AssetCategory, string> = {
   'emergency-cash': '💵',
   'gold': '🥇',
   'crypto': '₿',
-}
-
-// Map of well-known tickers → Clearbit logo domain
-const TICKER_DOMAIN: Record<string, string> = {
-  AAPL: 'apple.com',
-  MSFT: 'microsoft.com',
-  GOOGL: 'google.com',
-  GOOG: 'google.com',
-  AMZN: 'amazon.com',
-  META: 'meta.com',
-  NVDA: 'nvidia.com',
-  TSLA: 'tesla.com',
-  NFLX: 'netflix.com',
-  AMD: 'amd.com',
-  INTC: 'intel.com',
-  CRM: 'salesforce.com',
-  ORCL: 'oracle.com',
-  ADBE: 'adobe.com',
-  PYPL: 'paypal.com',
-  V: 'visa.com',
-  MA: 'mastercard.com',
-  JPM: 'jpmorganchase.com',
-  BAC: 'bankofamerica.com',
-  GS: 'goldmansachs.com',
-  SPY: 'ssga.com',
-  QQQ: 'invesco.com',
-  VTI: 'vanguard.com',
-  VOO: 'vanguard.com',
-  GLD: 'spdrgoldshares.com',
-  BTC: 'bitcoin.org',
 }
 
 // CoinGecko image cache
@@ -62,8 +33,42 @@ interface AssetIconProps {
   className?: string
 }
 
+// Parqet logo CDN — free, no auth, covers 100k+ stock/ETF tickers by symbol
+function ParqetLogo({
+  ticker,
+  size,
+  className,
+  fallback,
+}: {
+  ticker: string
+  size: number
+  className: string
+  fallback: React.ReactNode
+}) {
+  const [failed, setFailed] = useState(false)
+  if (failed) return <>{fallback}</>
+  return (
+    <img
+      src={`https://assets.parqet.com/logos/symbol/${ticker.toUpperCase()}`}
+      alt={ticker}
+      style={{ width: size, height: size }}
+      className={`rounded-md object-contain ${className}`}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 export function AssetIcon({ ticker, category, coinGeckoId, size = 28, className = '' }: AssetIconProps) {
   const style = { width: size, height: size }
+  const emoji = CATEGORY_EMOJI[category] ?? '💼'
+  const emojiEl = (
+    <span
+      style={style}
+      className={`inline-flex items-center justify-center rounded-full bg-muted text-base ${className}`}
+    >
+      {emoji}
+    </span>
+  )
 
   // Crypto: CoinGecko image
   if (category === 'crypto' && coinGeckoId && COINGECKO_IMAGES[coinGeckoId]) {
@@ -80,33 +85,18 @@ export function AssetIcon({ ticker, category, coinGeckoId, size = 28, className 
     )
   }
 
-  // US stocks / ETFs: Google favicon service
-  const domain = TICKER_DOMAIN[ticker.toUpperCase()]
-  if (domain && (category === 'us-stocks' || category === 'etf')) {
-    return (
-      <img
-        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
-        alt={ticker}
-        style={style}
-        className={`rounded-md object-contain ${className}`}
-        onError={(e) => {
-          const el = e.target as HTMLImageElement
-          el.style.display = 'none'
-          const parent = el.parentElement
-          if (parent) parent.dataset.fallback = 'true'
-        }}
-      />
-    )
+  // US stocks / ETFs: Parqet logo CDN covers virtually all tickers, falls back to emoji
+  if (category === 'us-stocks' || category === 'etf') {
+    return <ParqetLogo ticker={ticker} size={size} className={className} fallback={emojiEl} />
   }
 
-  // Fallback: category emoji in a colored circle
-  const emoji = CATEGORY_EMOJI[category] ?? '💼'
-  return (
-    <span
-      style={style}
-      className={`inline-flex items-center justify-center rounded-full bg-muted text-base ${className}`}
-    >
-      {emoji}
-    </span>
-  )
+  // Thai stocks & DRs: Parqet supports SET tickers with .BK suffix (e.g. PTT.BK).
+  // DR tickers are formatted as AAPL-R.BK — strip "-R.BK" to get the underlying symbol.
+  if (category === 'thai-stocks-drs') {
+    const upper = ticker.toUpperCase()
+    const parqetTicker = upper.endsWith('-R.BK') ? upper.replace(/-R\.BK$/, '') : upper
+    return <ParqetLogo ticker={parqetTicker} size={size} className={className} fallback={emojiEl} />
+  }
+
+  return emojiEl
 }
