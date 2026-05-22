@@ -135,10 +135,24 @@ export function Summary() {
                   ))}
                 </Pie>
                 <RTooltip
-                  formatter={(v: number) => [
-                    formatCurrency(v, displayCurrency),
-                    `${((v / summary.totalValue) * 100).toFixed(1)}%`,
-                  ]}
+                  wrapperStyle={{ opacity: 1, background: 'transparent', border: 'none' }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload?.length) return null
+                    const entry = payload[0]
+                    const pct = summary.totalValue > 0
+                      ? ((entry.value as number) / summary.totalValue * 100).toFixed(1)
+                      : '0.0'
+                    return (
+                      <div
+                        className="rounded-md border px-3 py-2 text-sm shadow-md"
+                        style={{ backgroundColor: 'hsl(var(--popover))', color: 'hsl(var(--popover-foreground))' }}
+                      >
+                        <p className="font-semibold mb-1">{entry.name}</p>
+                        <p>{formatCurrency(entry.value as number, displayCurrency)}</p>
+                        <p className="text-muted-foreground">{pct}%</p>
+                      </div>
+                    )
+                  }}
                 />
                 <Legend formatter={(v) => <span className="text-xs">{v}</span>} />
               </PieChart>
