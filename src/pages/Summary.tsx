@@ -173,7 +173,7 @@ export function Summary() {
                 <RTooltip
                   formatter={(v: number, name: string) => [formatCurrency(v, displayCurrency), name]}
                 />
-                <Legend />
+                <Legend verticalAlign="top" height={28} />
                 <Bar dataKey="cost" name="Cost Basis" fill="#94a3b8" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="value" name="Mkt. Value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               </BarChart>
