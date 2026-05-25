@@ -106,6 +106,7 @@ export function PnlBarChart({ assets, displayCurrency, usdToThb, className }: Ca
           <YAxis
             tick={{ fontSize: 11 }}
             tickFormatter={(v: number) => formatCurrency(v, displayCurrency, true)}
+            width={80}
           />
           <RTooltip
             formatter={(value: number, name: string) => {
