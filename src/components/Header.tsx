@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, TrendingUp, FolderOpen, Sun, Moon, SunMoon } from 'lucide-react'
+import { RefreshCw, TrendingUp, FolderOpen, Sun, Moon, SunMoon, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePortfolioStore } from '@/store/portfolioStore'
 import { fetchUsdToThb } from '@/services/exchangeRate'
@@ -7,7 +7,12 @@ import { ImportExportDialog } from '@/components/ImportExportDialog'
 import { useTheme } from '@/hooks/useTheme'
 import { cn } from '@/lib/utils'
 
-export function Header() {
+interface HeaderProps {
+  onToggleSidebar: () => void
+  sidebarCollapsed: boolean
+}
+
+export function Header({ onToggleSidebar, sidebarCollapsed }: HeaderProps) {
   const { displayCurrency, setDisplayCurrency, usdToThb, setExchangeRate, lastExchangeRateUpdate } =
     usePortfolioStore()
   const [fetchingRate, setFetchingRate] = useState(false)
@@ -38,10 +43,24 @@ export function Header() {
     <>
     <header className="sticky top-0 z-30 h-14 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-full items-center justify-between px-4 gap-4">
-        {/* Logo */}
-        <div className="flex items-center gap-2 font-semibold text-lg">
-          <TrendingUp className="h-5 w-5 text-primary" />
-          <span>Portfolio Tracker</span>
+        {/* Sidebar toggle + Logo */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0"
+            onClick={onToggleSidebar}
+            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {sidebarCollapsed
+              ? <PanelLeftOpen className="h-4 w-4" />
+              : <PanelLeftClose className="h-4 w-4" />}
+          </Button>
+          <div className="flex items-center gap-2 font-semibold text-lg">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            <span>Portfolio Tracker</span>
+          </div>
         </div>
 
         {/* Right controls */}

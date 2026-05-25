@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Header } from '@/components/Header'
@@ -19,13 +19,28 @@ function useSystemDark() {
 export default function App() {
   useSystemDark()
 
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('sidebarCollapsed') === 'true'
+  })
+
+  function toggleSidebar() {
+    setSidebarCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem('sidebarCollapsed', String(next))
+      return next
+    })
+  }
+
   return (
     <TooltipProvider>
       <HashRouter>
         <div className="min-h-screen bg-background">
-          <Header />
-          <Sidebar />
-          <main className="ml-56 pt-14 min-h-[calc(100vh-3.5rem)]">
+          <Header onToggleSidebar={toggleSidebar} sidebarCollapsed={sidebarCollapsed} />
+          <Sidebar collapsed={sidebarCollapsed} />
+          <main
+            className="pt-14 min-h-[calc(100vh-3.5rem)] transition-[margin-left] duration-300"
+            style={{ marginLeft: sidebarCollapsed ? '3.5rem' : '14rem' }}
+          >
             <div className="p-6 max-w-7xl mx-auto">
               <Routes>
                 <Route path="/" element={<Summary />} />
