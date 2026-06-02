@@ -75,11 +75,12 @@ interface AssetFormProps {
   onSave: (asset: Asset) => void
 }
 
-const EMPTY: Partial<Asset> = {
+const EMPTY: Partial<Asset> & { cryptoCostBasis?: number } = {
   ticker: '',
   name: '',
   avgCost: 0,
   units: 0,
+  cryptoCostBasis: undefined,
   buyGoalPrice: undefined,
   sellGoalPrice: undefined,
   manualPrice: undefined,
@@ -91,6 +92,15 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
   const [category, setCategory] = useState<AssetCategory>(defaultCategory ?? 'us-stocks')
   const [priceCurrency, setPriceCurrency] = useState<AssetCurrency>('USD')
   const [form, setForm] = useState<typeof EMPTY>(EMPTY)
+
+  // Derived avg price preview for crypto (costBasis / units)
+  const cryptoAvgPrice: number | null = (() => {
+    if (category !== 'crypto') return null
+    const cb = Number(form.cryptoCostBasis)
+    const u = Number(form.units)
+    if (!cb || !u) return null
+    return cb / u
+  })()
   const [fundSuggestions, setFundSuggestions] = useState<FinnomenaFund[]>([])
   const [fundDropdownOpen, setFundDropdownOpen] = useState(false)
 
@@ -104,6 +114,9 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
           name: initialAsset.name,
           avgCost: initialAsset.avgCost,
           units: initialAsset.units,
+          cryptoCostBasis: initialAsset.category === 'crypto'
+            ? initialAsset.avgCost * initialAsset.units
+            : undefined,
           buyGoalPrice: initialAsset.buyGoalPrice,
           sellGoalPrice: initialAsset.sellGoalPrice,
           manualPrice: initialAsset.manualPrice,
@@ -161,14 +174,18 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const units = Number(form.units) || 0
+    const avgCost = category === 'crypto'
+      ? (units > 0 ? (Number(form.cryptoCostBasis) || 0) / units : 0)
+      : Number(form.avgCost) || 0
     const asset: Asset = {
       id: initialAsset?.id ?? uuidv4(),
       category,
       ticker: (form.ticker ?? '').trim().toUpperCase(),
       name: (form.name ?? '').trim(),
-      avgCost: Number(form.avgCost) || 0,
-      units: Number(form.units) || 0,
-      buyGoalPrice: form.buyGoalPrice ? Number(form.buyGoalPrice) : undefined,
+      avgCost,
+      units,
+      buyGoalPrice: form.buyGoalPrice != null ? Number(form.buyGoalPrice) : undefined,
       sellGoalPrice: form.sellGoalPrice ? Number(form.sellGoalPrice) : undefined,
       priceCurrency,
       manualPrice: form.manualPrice ? Number(form.manualPrice) : undefined,
@@ -265,33 +282,76 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
             </NativeSelect>
           </div>
 
-          {/* Avg Cost + Units row */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Avg. Cost ({priceCurrency})</Label>
-              <Input
-                type="number"
-                step="any"
-                min="0"
-                placeholder="0.00"
-                value={form.avgCost ?? ''}
-                onChange={(e) => set('avgCost', e.target.value)}
-                required
-              />
+          {/* Cost / Units row */}
+          {category === 'crypto' ? (
+            <>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Cost Basis ({priceCurrency})</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    min="0"
+                    placeholder="0.00"
+                    value={form.cryptoCostBasis ?? ''}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, cryptoCostBasis: e.target.value ? Number(e.target.value) : undefined }))
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Units / Coins</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    min="0"
+                    placeholder="0"
+                    value={form.units ?? ''}
+                    onChange={(e) => set('units', e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Avg. Price ({priceCurrency})</Label>
+                <Input
+                  type="text"
+                  readOnly
+                  disabled
+                  value={cryptoAvgPrice != null ? cryptoAvgPrice.toFixed(8).replace(/\.?0+$/, '') : '—'}
+                  className="bg-muted text-muted-foreground cursor-not-allowed"
+                />
+              </div>
+            </>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Avg. Cost ({priceCurrency})</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  min="0"
+                  placeholder="0.00"
+                  value={form.avgCost ?? ''}
+                  onChange={(e) => set('avgCost', e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Units / Shares</Label>
+                <Input
+                  type="number"
+                  step="any"
+                  min="0"
+                  placeholder="0"
+                  value={form.units ?? ''}
+                  onChange={(e) => set('units', e.target.value)}
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <Label>Units / Shares</Label>
-              <Input
-                type="number"
-                step="any"
-                min="0"
-                placeholder="0"
-                value={form.units ?? ''}
-                onChange={(e) => set('units', e.target.value)}
-                required
-              />
-            </div>
-          </div>
+          )}
 
           {/* Goal Prices */}
           <div className="grid grid-cols-2 gap-3">
