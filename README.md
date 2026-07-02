@@ -37,7 +37,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 | Gold (ETF) | Yahoo Finance | `GLD` or `SPDR.BK` |
 | Crypto | CoinGecko | `BTC`, `ETH`, `SOL` (+ CoinGecko ID) |
 | Thai Mutual Funds | Finnomena public API (auto) / Manual | Search by fund name or code in the Add Asset form |
-| Cash & Emergency | Manual price override | Any label |
+| Cash & Emergency | No live price — value = amount entered | N/A (name only) |
 
 ### Thai Mutual Funds — NAV Data
 
@@ -53,6 +53,10 @@ If a fund has no NAV available via the API, set a **Manual Price Override** on t
 - Your fund company's app (KAsset, SCBAM, Krungsri Asset, etc.)
 - [Finnomena](https://www.finnomena.com/)
 - [Morningstar Thailand](https://www.morningstar.in.th/)
+
+### Emergency Funds & Cash — Entry
+
+This category has no live pricing, so the Add Asset form is simplified to just **Name**, **Price Currency**, and **Amount** (no ticker, goal prices, or manual price override). Internally, `units` is fixed to `1` and both `avgCost` and `manualPrice` are set to the amount you enter, so cost basis and market value are always equal (no P&L on cash).
 
 ## Import / Export
 
@@ -222,12 +226,12 @@ Only include categories that have assets — empty categories can be omitted.
       {
         "id": "7",
         "category": "emergency-cash",
-        "ticker": "SAVINGS",
+        "ticker": "EMERGENCY FUND",
         "name": "Emergency Fund",
-        "avgCost": 1,
-        "units": 300000,
+        "avgCost": 300000,
+        "units": 1,
         "priceCurrency": "THB",
-        "manualPrice": 1
+        "manualPrice": 300000
       }
     ]
   }

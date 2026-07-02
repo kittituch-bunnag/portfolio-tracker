@@ -48,6 +48,9 @@ The ticker input in AssetForm for `thai-mutual-funds` shows a live search autoco
 
 `FINNOMENA_EMAIL` / `FINNOMENA_PASSWORD` in `.env.local` are still supported (server-side only) for the auth-gated `/api/finnomena/*` proxy, but are no longer required for NAV fetching. Falls back to manual price override if neither auto-price source works. See README for setup.
 
+### Emergency Funds & Cash
+No live pricing — `fetchPricesForAssets()` excludes this category entirely. The `AssetForm` shows a reduced field set for this category (`ticker`/Buy-Sell-Goal/Manual-Price-Override inputs are hidden): just **Name**, **Price Currency**, and **Amount**. On submit, `units` is hardcoded to `1` and both `avgCost` and `manualPrice` are set to the entered amount, so `costBasis === currentValue` (no P&L) and `ticker` is auto-derived from `name`. When editing an existing asset, the Amount field is pre-filled with `avgCost * units` so older multi-unit entries normalize to the new convention on save.
+
 ## File Map
 | Path | Purpose |
 |---|---|
