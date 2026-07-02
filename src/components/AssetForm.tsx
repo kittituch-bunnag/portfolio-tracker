@@ -112,7 +112,9 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
         setForm({
           ticker: initialAsset.ticker,
           name: initialAsset.name,
-          avgCost: initialAsset.avgCost,
+          avgCost: initialAsset.category === 'emergency-cash'
+            ? initialAsset.avgCost * initialAsset.units
+            : initialAsset.avgCost,
           units: initialAsset.units,
           cryptoCostBasis: initialAsset.category === 'crypto'
             ? initialAsset.avgCost * initialAsset.units
@@ -174,6 +176,26 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const name = (form.name ?? '').trim()
+
+    if (category === 'emergency-cash') {
+      const amount = Number(form.avgCost) || 0
+      const asset: Asset = {
+        id: initialAsset?.id ?? uuidv4(),
+        category,
+        ticker: name.toUpperCase(),
+        name,
+        avgCost: amount,
+        units: 1,
+        priceCurrency,
+        manualPrice: amount,
+        lastUpdated: new Date().toISOString(),
+      }
+      onSave(asset)
+      onOpenChange(false)
+      return
+    }
+
     const units = Number(form.units) || 0
     const avgCost = category === 'crypto'
       ? (units > 0 ? (Number(form.cryptoCostBasis) || 0) / units : 0)
@@ -182,7 +204,7 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
       id: initialAsset?.id ?? uuidv4(),
       category,
       ticker: (form.ticker ?? '').trim().toUpperCase(),
-      name: (form.name ?? '').trim(),
+      name,
       avgCost,
       units,
       buyGoalPrice: form.buyGoalPrice != null ? Number(form.buyGoalPrice) : undefined,
@@ -229,6 +251,7 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
           </div>
 
           {/* Ticker */}
+          {category !== 'emergency-cash' && (
           <div className="space-y-1.5">
             <Label>Ticker / Code</Label>
             <div>
@@ -258,6 +281,7 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
               </ul>
             )}
           </div>
+          )}
 
           {/* Name */}
           <div className="space-y-1.5">
@@ -283,7 +307,20 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
           </div>
 
           {/* Cost / Units row */}
-          {category === 'crypto' ? (
+          {category === 'emergency-cash' ? (
+            <div className="space-y-1.5">
+              <Label>Amount ({priceCurrency})</Label>
+              <Input
+                type="number"
+                step="any"
+                min="0"
+                placeholder="0.00"
+                value={form.avgCost ?? ''}
+                onChange={(e) => set('avgCost', e.target.value)}
+                required
+              />
+            </div>
+          ) : category === 'crypto' ? (
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
@@ -354,6 +391,7 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
           )}
 
           {/* Goal Prices */}
+          {category !== 'emergency-cash' && (
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Buy Goal ({priceCurrency})</Label>
@@ -382,8 +420,10 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
               />
             </div>
           </div>
+          )}
 
           {/* Manual Price Override */}
+          {category !== 'emergency-cash' && (
           <div className="space-y-1.5">
             <Label>
               Manual Price Override{' '}
@@ -400,6 +440,7 @@ export function AssetForm({ open, onOpenChange, initialAsset, defaultCategory, o
               }
             />
           </div>
+          )}
 
           {/* CoinGecko ID for crypto */}
           {category === 'crypto' && (

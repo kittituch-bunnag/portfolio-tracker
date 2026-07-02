@@ -40,8 +40,7 @@ const CATEGORY_INFO: Record<AssetCategory, { title: string; description: string;
   'emergency-cash': {
     title: 'Emergency Funds & Cash',
     description: 'Savings accounts, fixed deposits, cash holdings',
-    dataNote:
-      'No live pricing. Enter the current balance as Manual Price Override with 1 unit, or enter amount as avgCost × units.',
+    dataNote: 'No live pricing. Just enter a name and the current balance.',
   },
   'gold': {
     title: 'Gold',
