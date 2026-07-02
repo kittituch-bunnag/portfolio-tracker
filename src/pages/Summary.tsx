@@ -33,7 +33,7 @@ const CATEGORY_ROUTE: Record<AssetCategory, string> = {
   'crypto': '/crypto',
 }
 
-const COLORS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#f59e0b','#f97316']
+const COLORS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#06b6d4','#ec4899','#f97316']
 
 export function Summary() {
   const { assets, displayCurrency, usdToThb } = usePortfolioStore()
