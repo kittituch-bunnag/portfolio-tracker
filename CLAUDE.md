@@ -46,7 +46,7 @@ NAV is fetched from Finnomena's public API (`/fn3/api/fund/v2/public/funds/{fund
 
 The ticker input in AssetForm for `thai-mutual-funds` shows a live search autocomplete backed by `/fn3/api/fund/v2/public/funds` (7 056 funds, cached in memory). Selecting a result populates `ticker` (= `short_code`), `name` (Thai name), and `finnomenaFundId`.
 
-`FINNOMENA_EMAIL` / `FINNOMENA_PASSWORD` in `.env.local` are still supported (server-side only) for the auth-gated `/api/finnomena/*` proxy, but are no longer required for NAV fetching. Falls back to manual price override if neither auto-price source works. See README for setup.
+Falls back to manual price override if neither auto-price source works. (An earlier email/password-authenticated `/api/finnomena/*` proxy was removed after Finnomena changed its login flow; nothing needed it.)
 
 ### Emergency Funds & Cash
 No live pricing — `fetchPricesForAssets()` excludes this category entirely. The `AssetForm` shows a reduced field set for this category (`ticker`/Buy-Sell-Goal/Manual-Price-Override inputs are hidden): just **Name**, **Price Currency**, and **Amount**. On submit, `units` is hardcoded to `1` and both `avgCost` and `manualPrice` are set to the entered amount, so `costBasis === currentValue` (no P&L) and `ticker` is auto-derived from `name`. When editing an existing asset, the Amount field is pre-filled with `avgCost * units` so older multi-unit entries normalize to the new convention on save.
@@ -90,7 +90,6 @@ npx tsc --noEmit   # type check
 
 ## Proxied API Endpoints
 - `/api/yahoo/*` → `https://query1.finance.yahoo.com/*` (custom Vite plugin — cookie+crumb auth via fc.yahoo.com)
-- `/api/finnomena/*` → `https://www.finnomena.com/*` (custom Vite plugin — email/password auth → access_token cookie)
 - `/api/finnomena-public/*` → `https://www.finnomena.com/*` (simple proxy — no auth, for public endpoints)
 - `/api/coingecko/*` → `https://api.coingecko.com/*`
 - `/api/exchangerate/*` → `https://open.er-api.com/*`
