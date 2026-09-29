@@ -81,7 +81,7 @@ export async function searchFinnomenaFund(query: string): Promise<FinnomenaFund[
 }
 
 // ---------------------------------------------------------------------------
-// Finnomena — Thai mutual fund NAV (requires FINNOMENA_EMAIL + FINNOMENA_PASSWORD in .env.local)
+// Finnomena — Thai mutual fund NAV (public API, no credentials)
 // ---------------------------------------------------------------------------
 export async function fetchFinnomenaNavPrices(assets: Asset[]): Promise<MarketPrice[]> {
   if (assets.length === 0) return []
